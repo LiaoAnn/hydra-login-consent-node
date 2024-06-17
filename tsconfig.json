@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "resolveJsonModule": true,
-    "target": "es5",
-    "module": "commonjs",
+    "target": "ESNext",
+    "module": "CommonJS",
     "lib": ["es2019", "dom"],
     "outDir": "./lib",
     "rootDir": "./src",
