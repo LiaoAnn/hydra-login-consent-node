@@ -19,3 +19,13 @@ export const GQL_GET_USER_BY_EMAIL = gql`
     }
   }
 `
+
+export const GQL_GET_USER_BY_ID = gql`
+  query MyQuery($id: uuid!) {
+    user_by_pk(id: $id) {
+      email
+      id
+      name
+    }
+  }
+`

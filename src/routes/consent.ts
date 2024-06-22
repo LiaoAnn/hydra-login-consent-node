@@ -6,8 +6,9 @@ import url from "url"
 import urljoin from "url-join"
 import csrf from "csurf"
 import { hydraAdmin } from "../config"
-import { oidcConformityMaybeFakeSession } from "./stub/oidc-cert"
-import { AcceptOAuth2ConsentRequestSession } from "@ory/client"
+import { getAuthSession } from "./stub/oidc-cert"
+import graphqlClient from "../utils/graphql-client"
+import { GQL_GET_USER_BY_ID } from "../utils/gqls"
 
 // Sets up csrf protection
 const csrfProtection = csrf({
@@ -34,9 +35,14 @@ router.get("/", csrfProtection, (req, res, next) => {
   hydraAdmin
     .getOAuth2ConsentRequest({ consentChallenge: challenge })
     // This will be called if the HTTP request was successful
-    .then(({ data: body }) => {
+    .then(async ({ data: body }) => {
       // If a user has granted this application the requested scope, hydra will tell us to not show the UI.
       // Any cast needed because the SDK changes are still unreleased.
+
+      const userRes = await graphqlClient.request<{ user_by_pk: any }>(GQL_GET_USER_BY_ID, {
+        id: body.subject,
+      })
+
       // TODO: Remove in a later version.
       if (body.skip || (body.client as any)?.skip_consent) {
         // You can apply logic here, for example grant another scope, or do whatever...
@@ -55,13 +61,7 @@ router.get("/", csrfProtection, (req, res, next) => {
               grant_access_token_audience: body.requested_access_token_audience,
 
               // The session allows us to set session data for id and access tokens
-              session: {
-                // This data will be available when introspecting the token. Try to avoid sensitive information here,
-                // unless you limit who can introspect tokens.
-                // accessToken: { foo: 'bar' },
-                // This data will be available in the ID token.
-                // idToken: { baz: 'bar' },
-              },
+              session: getAuthSession(userRes.user_by_pk, body.requested_scope),
             },
           })
           .then(({ data: body }) => {
@@ -77,7 +77,7 @@ router.get("/", csrfProtection, (req, res, next) => {
         // We have a bunch of data available from the response, check out the API docs to find what these values mean
         // and what additional data you have available.
         requested_scope: body.requested_scope,
-        user: body.subject,
+        user: userRes.user_by_pk.name,
         client: body.client,
         action: urljoin(process.env.BASE_URL || "", "/consent"),
       })
@@ -87,7 +87,7 @@ router.get("/", csrfProtection, (req, res, next) => {
   // The consent request has now either been accepted automatically or rendered.
 })
 
-router.post("/", csrfProtection, (req, res, next) => {
+router.post("/", csrfProtection, async (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
 
@@ -118,19 +118,10 @@ router.post("/", csrfProtection, (req, res, next) => {
     grantScope = [grantScope]
   }
 
-  // The session allows us to set session data for id and access tokens
-  let session: AcceptOAuth2ConsentRequestSession = {
-    // This data will be available when introspecting the token. Try to avoid sensitive information here,
-    // unless you limit who can introspect tokens.
-    access_token: {
-      // foo: 'bar'
-    },
-
-    // This data will be available in the ID token.
-    id_token: {
-      // baz: 'bar'
-    },
-  }
+  const authReq = await hydraAdmin.getOAuth2ConsentRequest({ consentChallenge: challenge })
+  const userRes = await graphqlClient.request<{ user_by_pk: any }>(GQL_GET_USER_BY_ID, {
+    id: authReq.data.subject,
+  })
 
   // Here is also the place to add data to the ID or access token. For example,
   // if the scope 'profile' is added, add the family and given name to the ID Token claims:
@@ -158,7 +149,7 @@ router.post("/", csrfProtection, (req, res, next) => {
             // and this only exists to fake a login system which works in accordance to OpenID Connect.
             //
             // If that variable is not set, the session will be used as-is.
-            session: oidcConformityMaybeFakeSession(grantScope, body, session),
+            session: getAuthSession(userRes.user_by_pk, grantScope),
 
             // ORY Hydra checks if requested audiences are allowed by the client, so we can simply echo this.
             grant_access_token_audience: body.requested_access_token_audience,
