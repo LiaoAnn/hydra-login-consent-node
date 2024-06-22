@@ -1,6 +1,5 @@
 import graphqlClient from "../utils/graphql-client"
 import express from "express"
-// import GQL_CREATE_USER from "../gql/user/createUser.gql"
 import { cryptPassword } from "../utils/crypt"
 
 const router = express.Router()
