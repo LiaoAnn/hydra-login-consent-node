@@ -13,7 +13,8 @@
     "serve": "node lib/app.js",
     "dev": "nodemon --watch 'views,src' --ext ts,pug,gql src/app.ts",
     "test": "npm-run-all build",
-    "prepublishOnly": "tsc"
+    "prepublishOnly": "tsc",
+    "docker:build": "docker build --platform='linux/amd64' -t liaoann1008/hydra-login-consent-node:latest ."
   },
   "prettier": "ory-prettier-styles",
   "dependencies": {
