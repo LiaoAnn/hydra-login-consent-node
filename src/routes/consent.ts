@@ -39,7 +39,7 @@ router.get("/", csrfProtection, (req, res, next) => {
       // If a user has granted this application the requested scope, hydra will tell us to not show the UI.
       // Any cast needed because the SDK changes are still unreleased.
 
-      const userRes = await graphqlClient.request<{ user_by_pk: any }>(GQL_GET_USER_BY_ID, {
+      const userRes = await graphqlClient.request<{ users_by_pk: any }>(GQL_GET_USER_BY_ID, {
         id: body.subject,
       })
 
@@ -61,7 +61,7 @@ router.get("/", csrfProtection, (req, res, next) => {
               grant_access_token_audience: body.requested_access_token_audience,
 
               // The session allows us to set session data for id and access tokens
-              session: getAuthSession(userRes.user_by_pk, body.requested_scope),
+              session: getAuthSession(userRes.users_by_pk, body.requested_scope),
             },
           })
           .then(({ data: body }) => {
@@ -77,7 +77,7 @@ router.get("/", csrfProtection, (req, res, next) => {
         // We have a bunch of data available from the response, check out the API docs to find what these values mean
         // and what additional data you have available.
         requested_scope: body.requested_scope,
-        user: userRes.user_by_pk.name,
+        user: userRes.users_by_pk.nickname,
         client: body.client,
         action: urljoin(process.env.BASE_URL || "", "/consent"),
       })

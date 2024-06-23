@@ -1,8 +1,8 @@
 import gql from "graphql-tag"
 
 export const GQL_CREATE_USER = gql`
-  mutation MyMutation($name: String!, $password: String!, $email: String!) {
-    insert_user(objects: { name: $name, password: $password, email: $email }) {
+  mutation MyMutation($nickname: String!, $password: String!, $account: String!) {
+    insert_users(objects: { nickname: $nickname, password: $password, account: $account }) {
       returning {
         id
       }
@@ -10,22 +10,22 @@ export const GQL_CREATE_USER = gql`
   }
 `
 
-export const GQL_GET_USER_BY_EMAIL = gql`
-  query MyQuery($email: String!) {
-    user(where: { email: { _eq: $email } }) {
+export const GQL_GET_USER_BY_ACCOUNT = gql`
+  query MyQuery($account: String!) {
+    users(where: { account: { _eq: $account } }) {
       id
-      email
+      account
       password
     }
   }
 `
 
 export const GQL_GET_USER_BY_ID = gql`
-  query MyQuery($id: uuid!) {
-    user_by_pk(id: $id) {
-      email
+  query MyQuery($id: bigint!) {
+    users_by_pk(id: $id) {
+      account
       id
-      name
+      nickname
     }
   }
 `

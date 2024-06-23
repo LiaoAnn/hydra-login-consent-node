@@ -16,8 +16,8 @@ block content
                 input(type="hidden", name="_csrf", value=csrfToken)
                 input(type="hidden", name="challenge", value=challenge)
                 .mb-4
-                  label.block.text-gray-700.text-sm.font-bold.mb-2(for='loginEmail') Email
-                  input#loginEmail.shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.leading-tight(class='focus:outline-none focus:shadow-outline' type='email' placeholder='Email' value=hint name="email")
+                  label.block.text-gray-700.text-sm.font-bold.mb-2(for='loginAccount') Account
+                  input#loginAccount.shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.leading-tight(class='focus:outline-none focus:shadow-outline' type='text' placeholder='Account' value=hint name="account")
                 .mb-6
                   label.block.text-gray-700.text-sm.font-bold.mb-2(for='loginPassword') Password
                   input#loginPassword.shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.leading-tight(class='focus:outline-none focus:shadow-outline' type='password' placeholder='Password' name="password")
@@ -28,8 +28,8 @@ block content
               h2.text-center.text-2xl.font-bold.mb-6 Register
               form(id='registerForm')
                 .mb-4
-                  label.block.text-gray-700.text-sm.font-bold.mb-2(for='registerEmail') Email
-                  input#registerEmail.shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.leading-tight(class='focus:outline-none focus:shadow-outline' required type='email' placeholder='Email')
+                  label.block.text-gray-700.text-sm.font-bold.mb-2(for='registerAccount') Account
+                  input#registerAccount.shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.leading-tight(class='focus:outline-none focus:shadow-outline' required type='text' placeholder='Account')
                 .mb-4
                   label.block.text-gray-700.text-sm.font-bold.mb-2(for='registerPassword') Password
                   input#registerPassword.shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.leading-tight(class='focus:outline-none focus:shadow-outline' required type='password' placeholder='Password')
@@ -62,7 +62,7 @@ block content
 
     document.getElementById('registerForm').addEventListener('submit', async function(event) {
       event.preventDefault();
-      const email = document.getElementById('registerEmail').value;
+      const account = document.getElementById('registerAccount').value;
       const password = document.getElementById('registerPassword').value;
       const confirmPassword = document.getElementById('registerConfirmPassword').value;
 
@@ -83,7 +83,7 @@ block content
       const res = await fetch('/register', {
         method: 'POST',
         body: new URLSearchParams({
-          email,
+          account,
           password,
         }),
       });

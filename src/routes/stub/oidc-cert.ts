@@ -28,10 +28,8 @@ export const oidcConformityMaybeFakeAcr = (
 export const getAuthSession = (user: any, grantScope: string[] = []) => {
   const session: Record<string, any> = {
     id: user.id,
-    name: user.name
-  }
-  if (grantScope.indexOf("email") > -1) {
-    session.email = user.email
+    name: user.nickname,
+    account: user.account,
   }
 
   session["https://hasura.io/jwt/claims"] = {

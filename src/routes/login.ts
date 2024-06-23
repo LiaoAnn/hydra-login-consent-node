@@ -7,7 +7,7 @@ import urljoin from "url-join"
 import csrf from "csurf"
 import { hydraAdmin } from "../config"
 import graphqlClient from "../utils/graphql-client"
-import { GQL_GET_USER_BY_EMAIL } from "../utils/gqls"
+import { GQL_GET_USER_BY_ACCOUNT } from "../utils/gqls"
 import { comparePassword } from "../utils/crypt"
 
 // Sets up csrf protection
@@ -93,10 +93,10 @@ router.post("/", csrfProtection, async (req, res, next) => {
 
   // Let's check if the user provided valid credentials. Of course, you'd use a database or some third-party service
   // for this!
-  const userByEmail = await graphqlClient.request<{ user: any[] }>(GQL_GET_USER_BY_EMAIL, {
-    email: req.body.email,
+  const userByAccount = await graphqlClient.request<{ users: any[] }>(GQL_GET_USER_BY_ACCOUNT, {
+    account: req.body.account,
   });
-  if (userByEmail.user.length === 0) {
+  if (userByAccount.users.length === 0) {
     res.render("login", {
       csrfToken: req.csrfToken(),
       challenge: challenge,
@@ -105,7 +105,7 @@ router.post("/", csrfProtection, async (req, res, next) => {
     return
   }
 
-  const hashedPassword = userByEmail.user[0].password
+  const hashedPassword = userByAccount.users[0].password
   if (!(await comparePassword(req.body.password, hashedPassword))) {
     res.render("login", {
       csrfToken: req.csrfToken(),
@@ -125,7 +125,7 @@ router.post("/", csrfProtection, async (req, res, next) => {
           loginChallenge: challenge,
           acceptOAuth2LoginRequest: {
             // Subject is an alias for user ID. A subject can be a random string, a UUID, an email address, ....
-            subject: userByEmail.user[0].id,
+            subject: userByAccount.users[0].id,
 
             // This tells hydra to remember the browser and automatically authenticate the user in future requests. This will
             // set the "skip" parameter in the other route to true on subsequent requests!
