@@ -21,10 +21,29 @@ export const oidcConformityMaybeFakeAcr = (
 
   return request.oidc_context?.acr_values &&
     request.oidc_context.acr_values.length > 0
-    ? request.oidc_context.acr_values[
-        request.oidc_context.acr_values.length - 1
-      ]
+    ? request.oidc_context.acr_values[request.oidc_context.acr_values.length - 1]
     : fallback
+}
+
+export const getAuthSession = (user: any, grantScope: string[] = []) => {
+  const session: Record<string, any> = {
+    id: user.id,
+    name: user.nickname,
+    account: user.account,
+  }
+
+  session["https://hasura.io/jwt/claims"] = {
+    "x-hasura-allowed-roles": [
+      "user",
+    ],
+    "x-hasura-default-role": "user",
+    "x-hasura-user-id": user.id,
+  }
+
+  return {
+    access_token: session,
+    id_token: session,
+  } as AcceptOAuth2ConsentRequestSession;
 }
 
 export const oidcConformityMaybeFakeSession = (

@@ -1,26 +1,117 @@
 extends layout
 
 block content
-    h1(id="login-title") Please log in
-    if error
-        p.
-            #{error}
-    form(action=action, method="POST")
-        input(type="hidden", name="_csrf", value=csrfToken)
-        input(type="hidden", name="challenge", value=challenge)
-        table(style="")
-            tr
-                td
-                    input(type="email", id="email", name="email", value=hint, placeholder="email@foobar.com")
-                td.
-                    (it's "foo@bar.com")
-            tr
-                td
-                    input(type="password", id="password", name="password")
-                td.
-                    (it's "foobar")
-        input(type="checkbox", id="remember", name="remember", value="1")
-        label(for="remember") Remember me
-        br
-        input(type="submit", id="accept", name="submit", value="Log in")
-        input(type="submit", id="reject", name="submit", value="Deny access")
+  .flex.items-center.justify-center.h-screen.bg-gray-100.p-4
+    .relative.w-full.max-w-md
+      .bg-white.shadow-md.rounded.px-8.pt-6.pb-8.mb-4
+        .mb-4.text-center
+          button#toggleLogin.text-blue-500 Login
+          span  / 
+          button#toggleRegister.text-blue-500 Register
+        .relative.w-full.overflow-hidden(class='h-[25rem]')
+          .absolute.top-0.bottom-0.left-0.flex.transition-all.duration-500.ease-in-out(class='w-[200%] right-1/2')
+            .login-form.flex-shrink-0.transition-all.duration-500.ease-in-out(class='w-1/2')
+              h2.text-center.text-2xl.font-bold.mb-6 Login
+              form(action=action, method="POST")
+                input(type="hidden", name="_csrf", value=csrfToken)
+                input(type="hidden", name="challenge", value=challenge)
+                .mb-4
+                  label.block.text-gray-700.text-sm.font-bold.mb-2(for='loginAccount') Account
+                  input#loginAccount.shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.leading-tight(class='focus:outline-none focus:shadow-outline' type='text' placeholder='Account' value=hint name="account")
+                .mb-6
+                  label.block.text-gray-700.text-sm.font-bold.mb-2(for='loginPassword') Password
+                  input#loginPassword.shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.leading-tight(class='focus:outline-none focus:shadow-outline' type='password' placeholder='Password' name="password")
+                .flex.items-center.justify-between
+                  button.bg-blue-500.text-white.font-bold.py-2.px-4.rounded(class='hover:bg-blue-700 focus:outline-none focus:shadow-outline' type='submit')
+                    | Login
+            .register-form.flex-shrink-0.transition-all.duration-500.ease-in-out(class='w-1/2')
+              h2.text-center.text-2xl.font-bold.mb-6 Register
+              form(id='registerForm')
+                .mb-4
+                  label.block.text-gray-700.text-sm.font-bold.mb-2(for='registerAccount') Account
+                  input#registerAccount.shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.leading-tight(class='focus:outline-none focus:shadow-outline' required type='text' placeholder='Account')
+                .mb-4
+                  label.block.text-gray-700.text-sm.font-bold.mb-2(for='registerPassword') Password
+                  input#registerPassword.shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.leading-tight(class='focus:outline-none focus:shadow-outline' required type='password' placeholder='Password')
+                .mb-6
+                  label.block.text-gray-700.text-sm.font-bold.mb-2(for='registerConfirmPassword') Confirm Password
+                  input#registerConfirmPassword.shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.leading-tight(class='focus:outline-none focus:shadow-outline' required type='password' placeholder='Confirm Password')
+                .flex.items-center.justify-between
+                  button.bg-blue-500.text-white.font-bold.py-2.px-4.rounded(class='hover:bg-blue-700 focus:outline-none focus:shadow-outline' type='submit')
+                    | Register
+  script.
+    const error = !{JSON.stringify(error || null)};
+    if (error) {
+      Toastify({
+        text: error,
+        close: true,
+        position: "center",
+        stopOnFocus: true,
+        style: {
+            background: "#ffc107",
+        },
+        className: "user-select:none",
+      }).showToast();
+    }
+    document.getElementById('toggleLogin').addEventListener('click', function() {
+    document.querySelector('.absolute').style.left = '0%';
+    });
+    document.getElementById('toggleRegister').addEventListener('click', function() {
+    document.querySelector('.absolute').style.left = '-100%';
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const account = document.getElementById('registerAccount').value;
+      const password = document.getElementById('registerPassword').value;
+      const confirmPassword = document.getElementById('registerConfirmPassword').value;
+
+      if (password !== confirmPassword) {
+        Toastify({
+          text: '新密碼與確認密碼不一致',
+          close: true,
+          position: "center",
+          stopOnFocus: true,
+          style: {
+            background: "#ffc107",
+          },
+          className: "user-select:none",
+        }).showToast();
+        return;
+      }
+
+      const res = await fetch('/register', {
+        method: 'POST',
+        body: new URLSearchParams({
+          account,
+          password,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        Toastify({
+          text: data.error,
+          close: true,
+          position: "center",
+          stopOnFocus: true,
+          style: {
+            background: "#dc3545",
+          },
+          className: "user-select:none",
+        }).showToast();
+        return;
+      }
+      Toastify({
+        text: '註冊成功',
+        close: true,
+        position: "center",
+        stopOnFocus: true,
+        style: {
+          background: "#28a745",
+        },
+        className: "user-select:none",
+      }).showToast();
+
+      // switch to login form
+      document.querySelector('.absolute').style.left = '0%';
+    });

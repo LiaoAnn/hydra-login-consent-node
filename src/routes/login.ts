@@ -6,7 +6,9 @@ import url from "url"
 import urljoin from "url-join"
 import csrf from "csurf"
 import { hydraAdmin } from "../config"
-import { oidcConformityMaybeFakeAcr } from "./stub/oidc-cert"
+import graphqlClient from "../utils/graphql-client"
+import { GQL_GET_USER_BY_ACCOUNT } from "../utils/gqls"
+import { comparePassword } from "../utils/crypt"
 
 // Sets up csrf protection
 const csrfProtection = csrf({
@@ -64,7 +66,7 @@ router.get("/", csrfProtection, (req, res, next) => {
     .catch(next)
 })
 
-router.post("/", csrfProtection, (req, res, next) => {
+router.post("/", csrfProtection, async (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
 
@@ -91,15 +93,25 @@ router.post("/", csrfProtection, (req, res, next) => {
 
   // Let's check if the user provided valid credentials. Of course, you'd use a database or some third-party service
   // for this!
-  if (!(req.body.email === "foo@bar.com" && req.body.password === "foobar")) {
-    // Looks like the user provided invalid credentials, let's show the ui again...
-
+  const userByAccount = await graphqlClient.request<{ users: any[] }>(GQL_GET_USER_BY_ACCOUNT, {
+    account: req.body.account,
+  });
+  if (userByAccount.users.length === 0) {
     res.render("login", {
       csrfToken: req.csrfToken(),
       challenge: challenge,
-      error: "The username / password combination is not correct",
+      error: "帳號輸入錯誤",
     })
+    return
+  }
 
+  const hashedPassword = userByAccount.users[0].password
+  if (!(await comparePassword(req.body.password, hashedPassword))) {
+    res.render("login", {
+      csrfToken: req.csrfToken(),
+      challenge: challenge,
+      error: "密碼輸入錯誤",
+    })
     return
   }
 
@@ -113,7 +125,7 @@ router.post("/", csrfProtection, (req, res, next) => {
           loginChallenge: challenge,
           acceptOAuth2LoginRequest: {
             // Subject is an alias for user ID. A subject can be a random string, a UUID, an email address, ....
-            subject: "foo@bar.com",
+            subject: userByAccount.users[0].id,
 
             // This tells hydra to remember the browser and automatically authenticate the user in future requests. This will
             // set the "skip" parameter in the other route to true on subsequent requests!
@@ -132,7 +144,7 @@ router.post("/", csrfProtection, (req, res, next) => {
             // and this only exists to fake a login system which works in accordance to OpenID Connect.
             //
             // If that variable is not set, the ACR value will be set to the default passed here ('0')
-            acr: oidcConformityMaybeFakeAcr(loginRequest, "0"),
+            // acr: oidcConformityMaybeFakeAcr(loginRequest, "0"),
           },
         })
         .then(({ data: body }) => {

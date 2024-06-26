@@ -23,7 +23,8 @@
         "oderwat.indent-rainbow",
         "bradlc.vscode-tailwindcss",
         "wayou.vscode-todo-highlight",
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "GraphQL.vscode-graphql"
       ],
       "settings": {
         "editor.bracketPairColorization.enabled": true,
@@ -42,7 +43,8 @@
         "typescript.format.placeOpenBraceOnNewLineForControlBlocks": false,
         "typescript.format.placeOpenBraceOnNewLineForFunctions": false,
         "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "javascript.suggest.autoImports": false
+        "javascript.suggest.autoImports": false,
+        "remote.localPortHost": "allInterfaces"
       }
     }
   },

@@ -1,35 +1,42 @@
 extends layout
 
 block content
-    h1 An application requests access to your data!
-    form(action=action, method="POST")
+  .flex.items-center.justify-center.h-screen.bg-gray-100.p-4
+    .relative.w-full.max-w-md
+      form(action=action, method="POST", class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4")
+        h1(class="text-2xl font-bold mb-4 text-center") An application requests access to your data!
         input(type="hidden", name="challenge", value=challenge)
         input(type="hidden", name="_csrf", value=csrfToken)
 
         if client.logo_uri
-            img(src=client.logo_uri)
+          img(src=client.logo_uri, class="mb-4 mx-auto")
 
-        p.
-            Hi #{user}, application <strong>#{client.client_name || client.client_id}</strong> wants access resources on your behalf and to:
+        p(class="mb-4")
+          | Hi #{user}, application 
+          strong #{client.client_name || client.client_id}
+          |  wants access resources on your behalf and to:
 
         each scope in requested_scope
-            input(type="checkbox", class="grant_scope", id=scope, value=scope, name="grant_scope")
-            label(for=scope) #{scope}
-            br
+          div(class="mb-2")
+            input(type="checkbox", class="grant_scope mr-2", id=scope, value=scope, name="grant_scope", class="mr-2")
+            label(for=scope, class="text-gray-700") #{scope}
 
-        p.
-            Do you want to be asked next time when this application wants to access your data? The application will
-            not be able to ask for more permissions without your consent.
-        ul
-            if client.policy_uri
-                li
-                    a(href=client.policy_uri) Policy
-            if client.tos_uri
-                li
-                    a(href=client.tos_uri) Terms of Service
-        p
-            input(type="checkbox", id="remember", name="remember", value="1")
-            label(for="remember") Do not ask me again
-        p
-            input(type="submit", id="accept", name="submit", value="Allow access")
-            input(type="submit", id="reject", name="submit", value="Deny access")
+        p(class="mt-4 mb-4")
+          | Do you want to be asked next time when this application wants to access your data? The application will
+          | not be able to ask for more permissions without your consent.
+        
+        ul(class="list-disc list-inside mb-4")
+          if client.policy_uri
+            li
+              a(href=client.policy_uri, class="text-blue-500 hover:underline") Policy
+          if client.tos_uri
+            li
+              a(href=client.tos_uri, class="text-blue-500 hover:underline") Terms of Service
+        
+        div(class="mb-4")
+          input(type="checkbox", id="remember", name="remember", value="1", class="mr-2")
+          label(for="remember", class="text-gray-700") Do not ask me again
+        
+        div(class="flex justify-between")
+          input(type="submit", id="accept", name="submit", value="Allow access", class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline")
+          input(type="submit", id="reject", name="submit", value="Deny access", class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline")

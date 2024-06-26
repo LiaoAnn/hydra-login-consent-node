@@ -1,0 +1,7 @@
+mutation MyMutation($name: String!, $password: String!, $email: String!) {
+  insert_user(objects: { name: $name, password: $password, email: $email }) {
+    returning {
+      id
+    }
+  }
+}
