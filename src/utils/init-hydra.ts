@@ -47,6 +47,31 @@ const createJWK = async () => {
 };
 
 (() => {
-  createClient("18cms", ["http://localhost:3000/callback"])
-  createJWK()
+  const args = process.argv.slice(2);
+  if (args[0] === '-h' || args[0] === '--help') {
+    console.log('Usage: init-hydra [OPTIONS] [ARGS]');
+    console.log('Options:');
+    console.log('  -h, --help    Show this help message and exit');
+    console.log('  -c, --client  Create a new OAuth2 client');
+    console.log('  example: init-hydra -c <client_name> http://url1 http://url2 ...')
+    console.log('  -j, --jwk     Create a new JWK');
+    console.log('  example: init-hydra -j')
+    return;
+  }
+
+  if (args[0] === '-c' || args[0] === '--client') {
+    const callbacks = args.slice(2);
+    if (callbacks.length === 0) {
+      console.log('Missing client name and redirect URIs.');
+      return;
+    }
+    createClient(args[1], args.slice(2))
+    return;
+  }
+  if (args[0] === '-j' || args[0] === '--jwk') {
+    createJWK()
+    return;
+  }
+
+  console.log('Invalid option. Use -h or --help for more information.');
 })()
